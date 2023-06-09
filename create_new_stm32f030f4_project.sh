@@ -1,6 +1,6 @@
 #!/bin/sh
 
-nothing_to_do=1
+op_counter=0
 
 # Array with directory names
 directories=("inc" "src" "MDK-ARM")
@@ -36,7 +36,7 @@ url2="https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Inc
 create_directory() {
   if [ ! -d "$1" ]; then
     mkdir "$1"
-    nothing_to_do=0
+    op_counter=$(expr $op_counter + 1)
     echo "Directory $1 successfully created."
   fi
 }
@@ -46,7 +46,7 @@ create_directory() {
 create_file() {
   if [ ! -f "$1" ]; then
     echo "$2" | base64 -d | tar xvjf -
-    nothing_to_do=0
+    op_counter=$(expr $op_counter + 1)
     echo "File $1 created."
   fi
 }
@@ -58,7 +58,7 @@ download_file() {
   filename="$2"
   if [ ! -f "$filename" ]; then
     curl -o "$filename" "$url"
-    nothing_to_do=0
+    op_counter=$(expr $op_counter + 1)
     echo "File $filename successfully downloaded."
   fi
 }
@@ -70,7 +70,7 @@ do
   create_directory "$dir"
 done
 
-download_file "${url1}/Source/Templates/${fname1[0]}" "$directories[1]/${fname1[0]}"
+download_file "${url1}/Source/Templates/${fname1[0]}" "${directories[1]}/${fname1[0]}"
 download_file "${url1}/Source/Templates/gcc/${fname1[1]}" "${directories[1]}/${fname1[1]}"
 download_file "${url1}/Source/Templates/arm/${fname1[1]}" "${directories[2]}/${fname1[1]}"
 
@@ -222,7 +222,7 @@ EOF
 # Create main.c and main.h files in src and inc directories respectively from embedded data using Here Document
 main_c_file="src/main.c"
 if [ ! -f "$main_c_file" ]; then
-  nothing_to_do=0
+  op_counter=$(expr $op_counter + 1)
   cat << EOF > "$main_c_file"
 #include <stdio.h>
 #include "main.h"
@@ -238,7 +238,7 @@ fi
 
 main_h_file="inc/main.h"
 if [ ! -f "$main_h_file" ]; then
-  nothing_to_do=0
+  op_counter=$(expr $op_counter + 1)
   cat << EOF > "$main_h_file"
 #ifndef __MAIN_H_
 #define __MAIN_H_
@@ -267,12 +267,13 @@ EOF
   echo "File main.h successfully created in inc directory."
 fi
 
-if [ $nothing_to_do -gt 0 ]
+if [ $op_counter -eq 0 ]
 then
   echo "Nothing to do."
+else
+  echo "$op_counter files created."
+  make debug
 fi
-
-make
 
 # Wait for any key to be pressed (if your system supports the read command)
 read -n 1 -s -r -p "Press any key to continue..."
