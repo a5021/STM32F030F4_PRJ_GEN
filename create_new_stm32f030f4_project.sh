@@ -1,7 +1,5 @@
 #!/bin/sh
 
-op_counter=0
-
 # Array with directory names
 directories=("inc" "src" "MDK-ARM")
 
@@ -23,21 +21,28 @@ directories=("inc" "src" "MDK-ARM")
 #    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_version.h
 #    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/core_cm0.h
 #    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_armcc.h
+#
+#    https://raw.githubusercontent.com/posborne/cmsis-svd/master/data/STMicro/STM32F030.svd
+#    https://raw.githubusercontent.com/posborne/cmsis-svd/master/data/STMicro/STM32F031x.svd
 
 fname1=("system_stm32f0xx.c" "startup_stm32f030x6.s")
 fname2=("system_stm32f0xx.h" "stm32f0xx.h" "stm32f030x6.h")
 fname3=("cmsis_compiler.h" "cmsis_armclang.h" "cmsis_gcc.h" "cmsis_iccarm.h" "cmsis_version.h" "core_cm0.h" "cmsis_armcc.h")
 
-url1="https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master"
-url2="https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/"
+raw_github="https://raw.githubusercontent.com/"
 
+url1="${raw_github}STMicroelectronics/cmsis_device_f0/master"
+url2="${raw_github}ARM-software/CMSIS_6/main/CMSIS/Core/Include/"
+url3="${raw_github}posborne/cmsis-svd/master/data/STMicro/STM32F031x.svd"
+
+op_counter=0
 
 # Function to check for the existence of a directory and create it if it doesn't exist
 create_directory() {
   if [ ! -d "$1" ]; then
     mkdir "$1"
     op_counter=$(expr $op_counter + 1)
-    echo "Directory $1 successfully created."
+    echo "Directory $1 created."
   fi
 }
 
@@ -45,7 +50,7 @@ create_directory() {
 # Function to check for the existence of a file and create it if it doesn't exist
 create_file() {
   if [ ! -f "$1" ]; then
-    echo "$2" | base64 -d | tar xvjf -
+    echo "$2" | base64 -d | tar xjf -
     op_counter=$(expr $op_counter + 1)
     echo "File $1 created."
   fi
@@ -54,12 +59,10 @@ create_file() {
 
 # Function to check if a file exists and download it if it doesn't
 download_file() {
-  url="$1"
-  filename="$2"
-  if [ ! -f "$filename" ]; then
-    curl -o "$filename" "$url"
+  if [ ! -f "$2" ]; then
+    curl -s -o "$2" "$1"
     op_counter=$(expr $op_counter + 1)
-    echo "File $filename successfully downloaded."
+    echo "File $2 downloaded."
   fi
 }
 
@@ -73,6 +76,7 @@ done
 download_file "${url1}/Source/Templates/${fname1[0]}" "${directories[1]}/${fname1[0]}"
 download_file "${url1}/Source/Templates/gcc/${fname1[1]}" "${directories[1]}/${fname1[1]}"
 download_file "${url1}/Source/Templates/arm/${fname1[1]}" "${directories[2]}/${fname1[1]}"
+download_file "${url3}" "STM32F031x.svd"
 
 # Download files
 for filename in "${fname2[@]}"
@@ -84,6 +88,10 @@ for filename in "${fname3[@]}"
 do
   download_file "${url2}${filename}" "${directories[0]}/${filename}"
 done
+
+# Remove all non-printable ASCII characters (including non-ASCII characters) from the file stm32f0xx.h, and save the modified file in place
+sed -i 's/[^[:print:]\t\n]//g' inc/stm32f0xx.h
+
 
 create_file "Makefile" "`cat << EOF
 QlpoOTFBWSZTWaME7GcAA5D/kNgyEABe//+Wf//e8P////QEAAAIYAdfXtjzx5yS7wOu9vLcwtMZ
@@ -219,59 +227,184 @@ RER3HWQgh0nQLlxixREIe4/1DyHOVpLDiefQ0IiIiIjiLLIixtK3NxYr5HeeB2DsuqvJ7NveOc3t
 EOF
 `"
 
-# Create main.c and main.h files in src and inc directories respectively from embedded data using Here Document
+create_file "project.jdebug" "`cat << EOF
+QlpoOTFBWSZTWT2Fk5UAAeLfkNwQdGf/Hj/m34D/9d/6BAAACEACNUpEUEkiBoFNqemTVG2knijy
+janqMmmmmI0NNHlAkhCIMhTxJmmkep6Go0ephpGQZNGjT9UY5gTE0GEyZMmRhME00yMTAEMBzAmJ
+oMJkyZMjCYJppkYmAIYMXzaq7/omhMyW94TCBkyCiOM01r/J3d0FrjpmBye5UmdiCCMQtW7MvqvF
+juao7x/k1mvYQuuqsrKGKkPfrZxDvOHYll/Utkyaul4xJRrMrBAtYwxG/i4dXv1379pcXUIJBUpa
+szOTpMhsImBuhk/YWBKKCCcdR0URRswuLEEedhe9BHt7P5bgeDrHlMrIq43EN1Mvr6dM6tg8mN0k
+83g6N/bBQx2HNG/hrwDUxzszcMTlBY4uFb1Fq69SMQeeGidKQPF60jKQabKd5acrw0kXOppSb0sf
+f1jsO2Il0tNaiZ5jBx6KTNtpNBFQbtH0w4FrpXeYa81BeC3v4Wq/jNS3LBiIm3qqwzpa15lbLOuo
+1bbCxpoOi08VcV5v70whEyAcOZOGx1nRPhQXQE1aXX4GY9k6IDyWHUqaaj16Iak0ZXyVHWLy0Oc5
+zDMjtheVKFZlMLCQ5kDKYswxAnMSxST6g5pZU1BkFKZokBVYMjgmyfsoLWef29QONi3k6JZ6+Fd4
+GbPlQG4YlTuF9YZ7eTDa6/Xe0CZ2ZZlJA3JjSMjIyGedXoM1jX5xwKjGTQcKpIKq3gyGYYYGGBgx
+dE9D1KaDkpN0ZVBQIK0vKyQLFxY6Z1IpvM/zfALou7sLTnrSmBlil/xdyRThQkD2Fk5U
+EOF
+`"
+
+create_file "inc/main.h" "`cat << EOF
+QlpoOTFBWSZTWTWhSPEAA73fkNgQeXX/jD/n3+D/79/uBAAACFADftsS7buphouEkkU9TeppqB+q
+ZNtUDQPUGg0AAaNNqbUAShRk0ZCamgNGgyAAAAADQASphFTynkamm0g0aADQaAaD1GjQAA4yZNNM
+JkZAwIxNGCMINGmAAQSRCaJqbZQp+hTQPSeoaaDIAZAaMmh5TfXnacAnIEYt0yB0wAwrEaN2bCF3
+t6Ix2ThERpqJ+UgEwBJAJmh7xJcFcp1gwSVUBVEUjS58DAxQgFKgGAGAJ2ADExJacU5PVIKrAA4A
+CaEPuDNgcW6WlNrbbqemzbWCNrHngOfdhDl8mGIgasr0l2TNUXkZS63p6uWe3gycQqnbNjByYcaQ
+XuCNLZxMAMDADG9xOwMwzBpQhhIzZa33/u9WxdstGZ7j42RIpQtBMzFyNtM1k237gFWJnAiUYIiC
+qRLjRQjkhh/oEbsdWNMWNN9xw3PxoqAVR3gCPJBkN8cYCG6GXXCXpfY57GbHH0IYdVPPeVkZ3RS6
+VF6eiRQ3cjwyW8iScnQxEAhp79wc5y7zIQgTGMwkvTJjZs7Knjp5yW2zXyuaaJ9BCHKsDmAR/JSi
+O8T1jQr1MM0FU7CU6AsTnKJ73vKiwuEJEkyEQEM5wVGRXTJAVZotUWj3OSYuFQz3SmsrJEpVCq14
+pEFGdEEERPoqVqTBdYq5g99o0j6SwwxuaLmv6GVRPPiZlmg0IM6EKJ58eKp9lIrGLyKa4JA5mz7k
+OMVQ6ZKICgKIWFljOJARL/EWZhNhfFHHOZc1cojH94DWyyZeWfsdHd6IlBVCCQMij0GolSrjCRld
+A05ufNIJ/A/CNIIz82IWAi++/QkEUfTP9TNo7TRIWCRAmJKGgswKgiyF255GXLLAEXJtbAGpjWRS
+FOcbYtTGozD5y23rBFShVnZ2aUoUEF+QEZgRE1/KCQWIgllGiIqgqiLIgZrkQFrruJX4mC2/W94t
+I6QZQIasb2pkPtsJVsfFwRTJWQIiCUJOCIDGGau8QRLaHDKOswGDQHfvvww7sQakyFljkZNAhGod
+dJQIFxEvkYW22hc10ItKuerMIMjjvr9Xoo0INefnsWogXpMEIMH9HGqJiQJ7MtVkUlNsF7bDn3tR
+ULAlYDg0j8Zhbgv8XckU4UJA1oUjxA==
+EOF
+`"
+
+create_file "inc/gpio.h" "`cat << EOF
+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
+EOF
+`"
+
+create_file "inc/rcc.h" "`cat << EOF
+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
+kinChIDGDxyg
+EOF
+`"
+
+# Create main.c file in src directory from embedded data using Here Document
 main_c_file="src/main.c"
 if [ ! -f "$main_c_file" ]; then
   op_counter=$(expr $op_counter + 1)
   cat << EOF > "$main_c_file"
-#include <stdio.h>
 #include "main.h"
 
 int main(void) {
 
-  for(init();; idle());
+  for(init();;idle());
 
 }
+
 EOF
-  echo "File main.c successfully created in src directory."
-fi
-
-main_h_file="inc/main.h"
-if [ ! -f "$main_h_file" ]; then
-  op_counter=$(expr $op_counter + 1)
-  cat << EOF > "$main_h_file"
-#ifndef __MAIN_H_
-#define __MAIN_H_
-
-#include "stm32f0xx.h"
-
-#define NO 0
-#define YES (!NO)
-
-__STATIC_FORCEINLINE void init(void) {
-  /* intentionally left empty */
-}
-
-__STATIC_FORCEINLINE void idle(void) {
-  /* intentionally left empty */
-}
-
-
-#if defined(__GNUC__) && !defined(__clang__)
-void _close_r(void){} void _close(void){} void _lseek_r(void){} void _lseek(void){} void _read_r(void){} void _read(void){} void _write_r(void){}
-#endif
-
-
-#endif /* __MAIN_H_ */
-EOF
-  echo "File main.h successfully created in inc directory."
+  echo "File $main_c_file created."
 fi
 
 if [ $op_counter -eq 0 ]
 then
   echo "Nothing to do."
 else
-  echo "$op_counter files created."
+  echo "$op_counter items created."
   make debug
 fi
 
