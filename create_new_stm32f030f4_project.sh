@@ -1,5 +1,20 @@
 #!/bin/sh
 
+function press_any_key {
+    echo -n "Press any key to continue..."
+    # read one character of input and discard it
+    read -n 1 -s -r 
+    echo ""
+}
+
+if ! command -v curl &> /dev/null; then
+    echo "curl is not installed. Please install curl and try again."
+    echo "For Debian/Ubuntu users: sudo apt-get install curl"
+    echo "For Red Hat/CentOS users: sudo yum install curl"
+    press_any_key
+    exit 1
+fi
+
 # Array with directory names
 directories=("inc" "src" "MDK-ARM")
 
@@ -60,7 +75,7 @@ create_file() {
 # Function to check if a file exists and download it if it doesn't
 download_file() {
   if [ ! -f "$2" ]; then
-    curl -s -o "$2" "$1"
+    curl -s "$1" | tr -cd '\11\12\15\40-\176' > "$2" 
     op_counter=$(expr $op_counter + 1)
     echo "File $2 downloaded."
   fi
@@ -88,10 +103,6 @@ for filename in "${fname3[@]}"
 do
   download_file "${url2}${filename}" "${directories[0]}/${filename}"
 done
-
-# Remove all non-printable ASCII characters (including non-ASCII characters) from the file stm32f0xx.h, and save the modified file in place
-sed -i 's/[^[:print:]\t\n]//g' inc/stm32f0xx.h
-
 
 create_file "Makefile" "`cat << EOF
 QlpoOTFBWSZTWaME7GcAA5D/kNgyEABe//+Wf//e8P////QEAAAIYAdfXtjzx5yS7wOu9vLcwtMZ
@@ -422,5 +433,5 @@ else
   make debug
 fi
 
-# Wait for any key to be pressed (if your system supports the read command)
-read -n 1 -s -r -p "Press any key to continue..."
+# Wait for any key to be pressed
+press_any_key
