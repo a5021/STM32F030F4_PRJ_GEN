@@ -3,7 +3,7 @@
 function press_any_key {
     echo -n "Press any key to continue..."
     # read one character of input and discard it
-    read -n 1 -s -r 
+    read -n 1 -s -r
     echo ""
 }
 
@@ -75,7 +75,7 @@ create_file() {
 # Function to check if a file exists and download it if it doesn't
 download_file() {
   if [ ! -f "$2" ]; then
-    curl -s "$1" | tr -cd '\11\12\15\40-\176' > "$2" 
+    curl -s "$1" | tr -cd '\11\12\15\40-\176' > "$2"
     op_counter=$(expr $op_counter + 1)
     echo "File $2 downloaded."
   fi
