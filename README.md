@@ -8,6 +8,5 @@ This repo consists of a single shell script that generates an empty STM32F030F4 
 * [PM0215: STM32F0 series Cortex-M0 programming manual](https://www.st.com/resource/en/programming_manual/dm00051352-stm32f0xxx-cortexm0-programming-manual-stmicroelectronics.pdf)
 * [ES0219: STM32F030x4/x6/x8/xC device errata](https://www.st.com/resource/en/errata_sheet/es0219-stm32f030x4x6x8xc-device-errata-stmicroelectronics.pdf)
 
-## STM32F0 CMSIS Device
-
-* [STM32F030F4](https://github.com/STMicroelectronics/cmsis-device-f0/tree/master)
+## Software references
+* [STMicroelectronics CMSIS Device F0 Repository](https://github.com/STMicroelectronics/cmsis-device-f0/tree/master)
