@@ -10,3 +10,4 @@ This repo consists of a single shell script that generates an empty STM32F030F4 
 
 ## Software references
 * [STMicroelectronics CMSIS Device F0 Repository](https://github.com/STMicroelectronics/cmsis-device-f0/tree/master)
+* [ARM CMSIS 5 Core](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/Core/Include)
