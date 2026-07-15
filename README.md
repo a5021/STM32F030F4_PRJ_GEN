@@ -11,3 +11,17 @@ This repo consists of a single shell script that generates an empty STM32F030F4 
 ## Software references
 * [STMicroelectronics CMSIS Device F0 Repository](https://github.com/STMicroelectronics/cmsis-device-f0/tree/master)
 * [ARM CMSIS 5 Core](https://github.com/ARM-software/CMSIS_5/tree/develop/CMSIS/Core/Include)
+
+## Notes
+
+* **STM32F030F4 is the same silicon as STM32F031x6.** The F030F4 is a marketing variant of the
+  `x6` die (up to 32 KB Flash / 6 KB RAM), so the generated project intentionally uses the
+  `stm32f030x6` CMSIS headers, the `startup_stm32f030x6.s` startup file and the
+  `stm32f030x6_flash.ld` linker script (where `FLASH` length is 32K and `RAM` length is 4K).
+  This works on the F030F4 because it is the same chip; only the available Flash is smaller.
+  Do not reduce the linker `FLASH` length unless you also change the device.
+
+* **SVD file.** The script downloads `STM32F031x.svd` (the STM32F0x0 family description, covering
+  the F030x4/x6/x8 and F031x lines) for use with external debuggers such as VS Code + Cortex-Debug.
+  The MDK-ARM project (`Project.uvprojx`) instead uses the SVD shipped with the STM32 device pack
+  (`STM32F0x0.svd` from the CMSIS pack), so the downloaded file is optional for MDK users.

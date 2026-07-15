@@ -1,9 +1,10 @@
 #!/bin/bash
+set -euo pipefail
 
 function press_any_key {
     echo -n "Press any key to continue..."
     # read one character of input and discard it
-    read -n 1 -s -r
+    read -n 1 -s -r || true
     echo ""
 }
 
@@ -18,33 +19,6 @@ fi
 # Array with directory names
 directories=("inc" "src" "MDK-ARM")
 
-# URLs for files
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Source/Templates/system_stm32f0xx.c
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Source/Templates/gcc/startup_stm32f030x6.s
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Source/Templates/arm/startup_stm32f030x6.s
-#
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Include/system_stm32f0xx.h
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Include/stm32f0xx.h
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis_device_f0/master/Include/stm32f030x6.h
-#    https://raw.githubusercontent.com/STMicroelectronics/cmsis-device-f0/refs/heads/master/Include/stm32f0xx.h
-#
-#               https://github.com/ARM-software/CMSIS_6/tree/main/CMSIS/Core/Include
-#
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_compiler.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_armclang.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_gcc.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_iccarm.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_version.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/core_cm0.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_6/main/CMSIS/Core/Include/cmsis_armcc.h
-#
-
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_5/refs/heads/develop/CMSIS/Core/Include/cmsis_armclang.h
-#    https://raw.githubusercontent.com/ARM-software/CMSIS_5/refs/heads/master/CMSIS/Core/Include/cmsis_armclang.h
-
-#    https://raw.githubusercontent.com/posborne/cmsis-svd/master/data/STMicro/STM32F030.svd
-#    https://raw.githubusercontent.com/posborne/cmsis-svd/master/data/STMicro/STM32F031x.svd
-
 fname1=("system_stm32f0xx.c" "startup_stm32f030x6.s")
 fname2=("system_stm32f0xx.h" "stm32f0xx.h" "stm32f030x6.h")
 fname3=("cmsis_compiler.h" "cmsis_armclang.h" "cmsis_gcc.h" "cmsis_iccarm.h" "cmsis_version.h" "core_cm0.h" "cmsis_armcc.h")
@@ -53,7 +27,7 @@ raw_github="https://raw.githubusercontent.com/"
 
 url1="${raw_github}STMicroelectronics/cmsis-device-f0/refs/heads/master"
 url2="${raw_github}ARM-software/CMSIS_5/refs/heads/develop/CMSIS/Core/Include/"
-url3="${raw_github}posborne/cmsis-svd/master/data/STMicro/STM32F031x.svd"
+url3="${raw_github}tinygo-org/stm32-svd/main/svd/stm32f0x0.svd"
 
 op_counter=0
 
@@ -80,7 +54,13 @@ create_file() {
 # Function to check if a file exists and download it if it doesn't
 download_file() {
   if [ ! -f "$2" ]; then
-    curl -s "$1" | tr -cd '\11\12\15\40-\176' > "$2"
+    local tmp="$2.tmp"
+    if ! curl -fSL --max-time 30 "$1" -o "$tmp"; then
+      echo "Error: failed to download '$1'" >&2
+      rm -f "$tmp"
+      exit 1
+    fi
+    mv "$tmp" "$2"
     op_counter=$(expr $op_counter + 1)
     echo "File $2 downloaded."
   fi
