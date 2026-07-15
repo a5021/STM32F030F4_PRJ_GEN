@@ -21,7 +21,8 @@ This repo consists of a single shell script that generates an empty STM32F030F4 
   This works on the F030F4 because it is the same chip; only the available Flash is smaller.
   Do not reduce the linker `FLASH` length unless you also change the device.
 
-* **SVD file.** The script downloads `STM32F031x.svd` (the STM32F0x0 family description, covering
-  the F030x4/x6/x8 and F031x lines) for use with external debuggers such as VS Code + Cortex-Debug.
-  The MDK-ARM project (`Project.uvprojx`) instead uses the SVD shipped with the STM32 device pack
-  (`STM32F0x0.svd` from the CMSIS pack), so the downloaded file is optional for MDK users.
+* **SVD file.** The script downloads `STM32F031x.svd` — the genuine per-part SVD from the
+  Keil/Open-CMSIS device family pack (`Open-CMSIS-Pack/STM32F0xx_DFP`) — for use with external
+  debuggers such as VS Code + Cortex-Debug. The MDK-ARM project (`Project.uvprojx`) instead uses the
+  SVD shipped with the STM32 device pack (`STM32F0x0.svd` from the CMSIS pack), so the downloaded
+  file is optional for MDK users.

@@ -27,7 +27,7 @@ raw_github="https://raw.githubusercontent.com/"
 
 url1="${raw_github}STMicroelectronics/cmsis-device-f0/refs/heads/master"
 url2="${raw_github}ARM-software/CMSIS_5/refs/heads/develop/CMSIS/Core/Include/"
-url3="${raw_github}tinygo-org/stm32-svd/main/svd/stm32f0x0.svd"
+url3="${raw_github}Open-CMSIS-Pack/STM32F0xx_DFP/main/CMSIS/SVD/STM32F031x.svd"
 
 op_counter=0
 
