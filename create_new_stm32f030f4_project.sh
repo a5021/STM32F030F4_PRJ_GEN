@@ -218,7 +218,12 @@ clean:
 gccversion :
 	@$(CC) --version
 
-# Program the microcontroller using ST-Link.
+# Program the microcontroller via ST-Link.
+# Default uses `st-flash` (stlink tools): same binary name on Windows/Linux/macOS,
+# no config files needed. Override if you use a different tool, e.g.:
+#   make program STLINK=openocd STLINK_FLAGS="-f interface/stlink.cfg -f target/stm32f0x.cfg -c \"program _build/Project.hex verify reset exit\""
+STLINK ?= st-flash
+STLINK_FLAGS ?= write $(BUILD_DIR)/$(TARGET).hex 0x8000000
 program: $(BUILD_DIR)/$(TARGET).hex
 	$(STLINK) $(STLINK_FLAGS)
    
@@ -241,6 +246,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 MEMORY
 {
     RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 4K
+    /* NOTE: this is the stm32f030x6 (32 KB) linker script, intentionally reused for the
+       STM32F030F4 (16 KB flash). The F4 physically has 16 KB (0x4000); the 32 K length is
+       kept so the script stays generic. Keep firmware within the real 16 KB. */
     FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 32K
 }
 
@@ -896,7 +904,7 @@ create_file "MDK-ARM/Project.uvprojx" <<'CREATE_EOF'
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3>"" ()</Flash3>
+          <Flash3></Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -1183,7 +1191,6 @@ CREATE_EOF
 create_file "project.jdebug" <<'CREATE_EOF'
 void OnProjectLoad (void) {
   Project.AddPathSubstitute (".", "$(ProjectDir)");
-  Project.AddPathSubstitute (".", "$(ProjectDir)");
   Project.SetDevice ("STM32F030F4");
   Project.SetHostIF ("USB", "");
   Project.SetTargetIF ("SWD");
@@ -1418,9 +1425,9 @@ create_file "inc/gpio.h" <<'CREATE_EOF'
 #endif
 
 
-#define USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFALUT        1
+#define USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFAULT        1
 
-#define GPIO_MODE                      (USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFALUT * UINT32_MAX)
+#define GPIO_MODE                      (USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFAULT * UINT32_MAX)
 #define PIN_XOR                        (GPIO_MODE & 3UL)
 
 #define PIN_MODE_INPUT                 (0x00UL ^ PIN_XOR)
@@ -1918,8 +1925,8 @@ __STATIC_FORCEINLINE void init_gpio(void) {
 //                          https://github.com/a5021/stm32codegen                          
 //  Arguments used:
 //    -l 030f4 -p GPIOA GPIOB GPIOF -m gpio -f init_gpio -D
-//    USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFALUT 1 "" GPIO_MODE
-//    "(USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFALUT * UINT32_MAX)" PIN_XOR "(GPIO_MODE &
+//    USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFAULT 1 "" GPIO_MODE
+//    "(USE_ANALOG_MODE_FOR_ALL_PINS_BY_DEFAULT * UINT32_MAX)" PIN_XOR "(GPIO_MODE &
 //    3UL)" "" PIN_MODE_INPUT "(0x00UL ^ PIN_XOR)" PIN_MODE_OUTPUT "(0x01UL ^
 //    PIN_XOR)" PIN_MODE_AF "(0x02UL ^ PIN_XOR)" PIN_MODE_ANALOG "(0x03UL ^ PIN_XOR)"
 //    "" "PIN_CFG(PIN, MODE)" "((MODE)   << ((PIN) * 2))" "PIN_MODE(PIN, MODE)"
